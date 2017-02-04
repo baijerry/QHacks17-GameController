@@ -1,8 +1,3 @@
-#include "config.h"
-
-#include "ArduinoJson.h"
-#include "SparkIntervalTimer.h"
-
 #include <string.h>
 #include <Servo.h>
 
@@ -12,6 +7,8 @@
 
 enum MODE { M_IDLE = 0, M_GAME, M_FINISH };
 MODE mode;
+
+bool isHard;
 
 //pin mapping
 /*
@@ -38,7 +35,7 @@ MODE mode;
 //arrays
 
 //forward declare
-bool checkcupstatus();
+int CheckEmptyCups();
 
 //-------------------------------
 // SETUP
@@ -63,6 +60,9 @@ void setup() {
   digitalWrite(pin_led5, LOW);
   pinMode (pin_led6, OUTPUT);
   digitalWrite(pin_led6, LOW);
+
+  mode = M_IDLE;
+  isHard = false;
 }
 
 //-------------------------------
@@ -70,33 +70,70 @@ void setup() {
 //-------------------------------
 void loop(){
   if (mode == M_IDLE){
+    //TODO: wait for starting game command
+    //- parse isHard data
+    while(0){
+      delay(100);
+    }
     
-    //ToDo: wait for starting game command
-    if (checkcupstatus()){
-        
-      }
-  }    
+    if (!checkcupstatus()){
+      //not ready to start
+
+      //TODO: send not ready command
+    }
+    while (CheckEmptyCups()!=0){
+      delay(100);
+    }
+    //TODO: send ready command
+
+    if (isHard){
+      digitalWrite(pin_servo, HIGH);
+    }
+    else {
+      digitalWrite(pin_servo, LOW);
+    }
+    
+    mode = M_GAME;
+  }
+
+  if (mode == M_GAME){
+    int pts_array [6];
+    
+    if (CheckEmptyCups()==6) {
+      //game over
+      //TODO: send game over data
+      mode = M_FINISH;
+    }
+  }
+
+  if (mode == M_FINISH){
+    
+  }
 }
 
 //-------------------------------
 // MAIN FUNCTIONS
 //-------------------------------
-bool checkcupstatus(){
-  bool flag = true;
+int CheckEmptyCups(){
+  int count = 0;
   if (digitalRead(pin_cup1) == LOW)
-    flag = false;
+    count++;
   if (digitalRead(pin_cup2) == LOW)
-    flag = false;
+    count++;
   if (digitalRead(pin_cup3) == LOW)
-    flag = false;
+    count++;
   if (digitalRead(pin_cup4) == LOW)
-    flag = false;
+    count++;
   if (digitalRead(pin_cup5) == LOW)
-    flag = false;
+    count++;
   if (digitalRead(pin_cup6) == LOW)
-    flag = false;
+    count++;
+
+  return count;
 }
 
 //-------------------------------
 // HELPER FUNCTIONS
 //-------------------------------
+
+

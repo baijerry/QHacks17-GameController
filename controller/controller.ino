@@ -14,7 +14,7 @@ bool isHard;
   0  = cup not removed
   5  = hit cup
   10 = hit points cup
-  
+
 */
 int pts_array [6];
 
@@ -81,21 +81,20 @@ void setup() {
 //-------------------------------
 void loop(){
   if (mode == M_IDLE){
-    //TODO: wait for starting game command
-    //- parse isHard data
+    //TODO: wait for starting game command (serial input) (servo always on)
     while(0){
       delay(100);
     }
-    
+
     if (CheckEmptyCups() != 0){
       //not ready to start
 
-      //TODO: send not ready command
+      //TODO: print out not ready on serial (not a node message)
     }
     while (CheckEmptyCups()!=0){
       delay(100);
     }
-    //TODO: send ready command
+    //TODO: send ready command (NODE:ready:1)
 
     if (isHard){
       digitalWrite(pin_servo, HIGH);
@@ -103,7 +102,7 @@ void loop(){
     else {
       digitalWrite(pin_servo, LOW);
     }
-    
+
     mode = M_GAME;
   }
 
@@ -115,7 +114,7 @@ void loop(){
 
     //generate random points cup (-1 if game over)
     int win_cup = genRandCup();
-    
+
     while (CheckEmptyCups() !=6 ){ //still cups left
       //poll 6 cups to see if 1 got removed
 
@@ -125,7 +124,7 @@ void loop(){
       }
       delay(10);
     }
-    
+
     //all 6 cups removed
 
     //TODO: Send final game data from pts_array
@@ -174,7 +173,7 @@ void clearArray(){
 int genRandCup(){
   int a_index = 0; //length of existing cup array
   int existing_cup_array[6];
-  
+
   for (int i = 0; i < 6; i++) {
     if (pts_array[i] == 0){
       existing_cup_array[a_index] = i;
@@ -188,17 +187,17 @@ int genRandCup(){
     //all cups are gone, cannot do rand int command (game is over)
     return -1;
   }
-  
+
   //Chose random index from existing_cup_array
   int randIndex = random(0, a_index);
   //Convert that into a cup number to return
-  return existing_cup_array[randIndex] + 1;  
+  return existing_cup_array[randIndex] + 1;
 }
 
 //Polls cups, detects removed cups, sends data, updates pts array
 int DetectCupChange(int win_cup){
   bool pollArray [6];
-  
+
   //poll all pins
   if (digitalRead(pin_cup1) == HIGH){
     pollArray[0] = false;
@@ -241,7 +240,7 @@ int DetectCupChange(int win_cup){
     //if cup is missing, determine whether its a 5 or a 10, send data, and update pts array
 
   bool flag_CupsChanged = false;
-  
+
   for (int i = 0; i < 6; i++) {
     if (pts_array[i] == 0)
       if (pollArray[i] == true){
@@ -265,5 +264,3 @@ int DetectCupChange(int win_cup){
     return 0;
   }
 }
-
-

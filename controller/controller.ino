@@ -135,8 +135,7 @@ void loop(){
 
   if (mode == M_FINISH){
     digitalWrite(pin_servo, LOW);
-    
-    
+    mode == M_IDLE;
   }
 }
 

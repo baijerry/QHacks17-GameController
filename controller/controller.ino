@@ -10,6 +10,14 @@ MODE mode;
 
 bool isHard;
 
+/*
+  0  = cup not removed
+  5  = hit cup
+  10 = hit points cup
+  
+*/
+int pts_array [6];
+
 //pin mapping
 /*
   1
@@ -36,6 +44,8 @@ bool isHard;
 
 //forward declare
 int CheckEmptyCups();
+void clearArray();
+int genRandCup();
 
 //-------------------------------
 // SETUP
@@ -76,7 +86,7 @@ void loop(){
       delay(100);
     }
     
-    if (!checkcupstatus()){
+    if (CheckEmptyCups() != 0){
       //not ready to start
 
       //TODO: send not ready command
@@ -97,16 +107,24 @@ void loop(){
   }
 
   if (mode == M_GAME){
-    int pts_array [6];
+    //start game
+
+    //clear array (all cups in)
+    clearArray();
+
+    //generate random points cup
+    int win_cup = genRandCup();
     
-    if (CheckEmptyCups()==6) {
-      //game over
-      //TODO: send game over data
-      mode = M_FINISH;
+    while (CheckEmptyCups() !=6 ){ //still cups left
+      
     }
+    
+    //all 6 cups removed
   }
 
   if (mode == M_FINISH){
+    digitalWrite(pin_servo, LOW);
+
     
   }
 }
@@ -130,6 +148,36 @@ int CheckEmptyCups(){
     count++;
 
   return count;
+}
+
+void clearArray(){
+  for (int i = 0; i < 6; i++){
+    pts_array[i] = 0;
+  }
+}
+
+int genRandCup(){
+  int a_index = 0; //length of existing cup array
+  int existing_cup_array[6];
+  
+  for (int i = 0; i < 6; i++) {
+    if (pts_array[i] == 0){
+      existing_cup_array[a_index] = i;
+      a_index++;
+    }
+  }
+
+  //existing_cup_array contains list of all pts array indexes with value = 0. Has length of a_index
+
+  if (a_index == 0) {
+    //all cups are gone, cannot do rand int command (game is over)
+    return -1;
+  }
+  
+  //Chose random index from existing_cup_array
+  int randIndex = random(0, a_index);
+  //Convert that into a cup number to return
+  return existing_cup_array[randIndex] + 1;  
 }
 
 //-------------------------------

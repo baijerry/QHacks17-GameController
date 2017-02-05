@@ -46,6 +46,7 @@ int pts_array [6];
 int CheckEmptyCups();
 void clearArray();
 int genRandCup();
+int DetectCupChange(int win_cup); //Polls cups, detects removed cups, sends data, updates pts array
 
 //-------------------------------
 // SETUP
@@ -112,22 +113,36 @@ void loop(){
     //clear array (all cups in)
     clearArray();
 
-    //generate random points cup
+    //generate random points cup (-1 if game over)
     int win_cup = genRandCup();
     
     while (CheckEmptyCups() !=6 ){ //still cups left
-      
+      //poll 6 cups to see if 1 got removed
+
+      if (DetectCupChange(win_cup)){ //Polls cups, detects removed cups, sends data, updates pts array
+        //cup was pulled
+        win_cup = genRandCup();
+      }
+      delay(10);
     }
     
     //all 6 cups removed
+
+    //TODO: Send final game data from pts_array
+
+    mode == M_FINISH;
   }
 
   if (mode == M_FINISH){
     digitalWrite(pin_servo, LOW);
-
+    
     
   }
 }
+
+//-------------------------------
+// HELPER FUNCTIONS
+//-------------------------------
 
 //-------------------------------
 // MAIN FUNCTIONS
@@ -156,6 +171,7 @@ void clearArray(){
   }
 }
 
+//returns -1 if all cups gone, otherwise returns cup# of an avaliable cup
 int genRandCup(){
   int a_index = 0; //length of existing cup array
   int existing_cup_array[6];
@@ -180,8 +196,75 @@ int genRandCup(){
   return existing_cup_array[randIndex] + 1;  
 }
 
-//-------------------------------
-// HELPER FUNCTIONS
-//-------------------------------
+//Polls cups, detects removed cups, sends data, updates pts array
+int DetectCupChange(int win_cup){
+  bool pollArray [6];
+  
+  //poll all pins
+  if (digitalRead(pin_cup1) == HIGH){
+    pollArray[0] = false;
+  }
+  else {
+    pollArray[0] = true;
+  }
+  if (digitalRead(pin_cup2) == HIGH){
+    pollArray[1] = false;
+  }
+  else {
+    pollArray[1] = true;
+  }
+  if (digitalRead(pin_cup3) == HIGH){
+    pollArray[2] = false;
+  }
+  else {
+    pollArray[2] = true;
+  }
+  if (digitalRead(pin_cup4) == HIGH){
+    pollArray[3] = false;
+  }
+  else {
+    pollArray[3] = true;
+  }
+  if (digitalRead(pin_cup5) == HIGH){
+    pollArray[4] = false;
+  }
+  else {
+    pollArray[4] = true;
+  }
+  if (digitalRead(pin_cup6) == HIGH){
+    pollArray[5] = false;
+  }
+  else {
+    pollArray[5] = true;
+  }
+
+  //compare pts array and poll array for changes
+    //if cup is missing, determine whether its a 5 or a 10, send data, and update pts array
+
+  bool flag_CupsChanged = false;
+  
+  for (int i = 0; i < 6; i++) {
+    if (pts_array[i] == 0)
+      if (pollArray[i] == true){
+        //cup gone
+        flag_CupsChanged = true;
+        if (i+1 == win_cup){
+          //TODO send cup is 10 data
+          pts_array[i] = 10;
+        }
+        else{
+          //TODO send cup is 5 data
+          pts_array[i] = 5;
+        }
+      }
+    }
+
+  if (flag_CupsChanged){
+    return 1;
+  }
+  else{
+    return 0;
+  }
+}
 
 
